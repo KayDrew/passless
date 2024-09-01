@@ -1,0 +1,44 @@
+
+<body class="profile-body">
+    <div class="profile-container">
+        <h1>User Profile</h1>
+        <img src="profile-picture.jpg" alt="Profile Picture" class="profile-image">
+        <div class="upload-btn">
+            <label for="file-upload">Upload Image</label>
+            <input type="file" id="file-upload" accept="image/*" onChange="handleImageUpload()">
+        </div>
+        <div class="profile-info">
+            <p><strong>Username:</strong> ID: {{id}}</p>
+            <p><strong>Full Name:</strong> Hello {{name}}</p>
+            <p><strong>Age:</strong> 30</p>
+            <p><strong>Gender:</strong> Male</p>
+        </div>
+        <div class="edit-profile">
+            <a href="#">Edit Profile</a>
+        </div>
+    </div>
+    <div class="profile-container">
+
+<form action="/logout" method="post">
+
+<button type="submit">Logout</button>
+</form>
+</div>
+</body>
+<script >
+
+    function handleImageUpload() 
+{
+
+var image = document.querySelector("#file-upload").files[0];
+
+    var reader = new FileReader();
+
+    reader.onload = function(e) {
+      document.querySelector(".profile-image").src = e.target.result;
+    }
+
+    reader.readAsDataURL(image);
+
+} 
+</script>
