@@ -8,6 +8,10 @@ const engine= require('express-handlebars'). engine;
 //import { engine } from 'express-handlebars';
 //const routes = require ('./routes');
 const LocalStrategy = require('passport-local').Strategy;
+const server= require("http").createServer(app);
+const io= require("socket.io")(server,
+ {cors: {origin:"*"},
+connectionStateRecovery: {}});
 // view engine setup
 app.set('views', 'views');
 app.engine('handlebars', engine());
@@ -22,7 +26,9 @@ app.use(express.urlencoded({ extended: false }));
 app.use(session({
   secret: "secret",
   resave: false ,
-  saveUninitialized: true ,
+  saveUninitialized: false,
+  cookie: {maxAge: 600000},
+  //cookie: {secure: true}
 }));
 
 app.use(passport.initialize());
@@ -36,7 +42,8 @@ let authUser = (user, password, done) => {
 
 //Search the user, password in the DB to authenticate the user
 //Let's assume that a search within your DB returned the username and password match for "Kyle".
-   let authenticated_user = { id: 123, name: "Kyle"}
+   let authenticated_user = { id: 123, name: user};
+   console.log("authenticated user " +JSON.stringify( authenticated_user));
    return done (null, authenticated_user );
 }
 passport.use(new LocalStrategy (authUser));
@@ -44,16 +51,16 @@ passport.use(new LocalStrategy (authUser));
 
 
 passport.serializeUser( (user, done) => {
-	console.log(user)     
+//	console.log(user)     
 
-    done(null, user.id)
+    done(null, user)
     
 });
 
-passport.deserializeUser((id, done) => {
-      console.log(id);
+passport.deserializeUser((user, done) => {
+      console.log(user);
 
-        done (null, {name: "Kyle", id: 123} );
+        done (null, {name: user.name, id: user.id} );
 });
 
 let checkAuthenticated = (req, res, next) => {
@@ -70,17 +77,24 @@ let checkLoggedIn = (req, res, next) => {
   next()
 }
 
+app.get("/", (req,res)=>{
+
+res.render("index");
+});
+
 app.get("/login", checkLoggedIn, (req, res) => {     
      res.render("login");
 })
 
 app.post ("/login", passport.authenticate('local', {
-   successRedirect: "/profile",
+   successRedirect: "/chat",
    failureRedirect: "/login",
 }));
 
-app.get("/profile", checkAuthenticated, (req, res) => {
-  res.render("profile", {
+app.get("/chat", checkAuthenticated, (req, res) => {
+	
+	console.log(req.user);
+  res.render("chat", {
 name: req.user.name,
 id: req.user.id,
 });
@@ -88,41 +102,53 @@ id: req.user.id,
 
 
 app.post('/logout', function(req, res, next) {
+	
+	res.clearCookie('connect.sid');
   req.logout(function(err) {
-    if (err) { return next(err); }
+    if (err) { return next(err); 
+
+}
+
+req.session.destroy( function(err){// destroys session  on both ends
+if(err){
+
+return next(err);
+}
+
+});
     res.redirect('/login');
   });
 });
 
+server.listen(3000,()=>{
+console.log("running on port 3000");
+});
 
-let count = 1
+let users=0;
 
-printData = (req, res, next) => {
-    console.log("\n==============================")
-    console.log(`------------>  ${count++}`)
+io.on("connection", (socket)=>{
+	
+console.log("user connected: " + socket.id);
 
-    console.log(`req.body.username -------> ${req.body.username}`) 
-    console.log(`req.body.password -------> ${req.body.password}`)
+++users;
+io.emit("user count", users);
+console.log(users);
 
-    console.log(`\n req.session.passport -------> `)
-    console.log(req.session.passport)
-  
-    console.log(`\n req.user -------> `) 
-    console.log(req.user) 
-  
-    console.log("\n Session and Cookie")
-    console.log(`req.session.id -------> ${req.session.id}`) 
-    console.log(`req.session.cookie -------> `) 
-    console.log(req.session.cookie) 
-  
-    console.log("===========================================\n")
+socket.on("message", (data)=>{
+//console.log(data);
+//send message to everyone but ourselves 
+socket.broadcast.emit("message", data);
+});
+//handle a disconnect 
+socket.on("disconnect", ()=>{
+	console.log("disconnected");
+--users;
+io.emit("user count", users);
+console.log(users);
+socket.disconnect();
 
-    next()
-}
-
-app.use(printData) //user printData function as middleware to print populated variables
+});
 
 
-app.listen(3000, ()=>{
-console.log("App running on port 3000")
+
 });

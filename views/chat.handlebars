@@ -1,0 +1,67 @@
+
+<head>
+<script src="https://cdn.socket.io/socket.io-3.0.1.min.js"></script>
+</head>
+<body>
+    <div class="edit-container">
+        <h3>{{name}} has entered the room</h3>
+        <h1></h1>
+        <h2></h2>
+        <form action="#">
+        <input type="submit" value="disconnect" id="button">
+           <input type="text" id="text"/>
+                    
+                <input type="submit" value="Send" onclick="sendMessage()">
+            
+        </form>
+    </div>
+    <script>
+    let users=0;
+    
+const socket= io("http://localhost:3000");
+socket.on("connection",()=>{
+
+});
+
+socket.on("disconnect",(reason)=>{
+
+if(reason==="io server disconnect"){
+socket.connect();
+
+}
+console.log("disconnected");
+});
+
+socket.emit("user count", users);
+
+socket.on("user count",(data)=>{
+
+document.querySelector("h2").innerText=data+" online.";
+
+});
+
+const btn= document.querySelector("#button");
+
+btn.addEventListener ("click", ()=>{
+socket.disconnect();
+btn.value="connect";
+btn.style.background="red";
+console.log(socket.connected);
+})
+
+socket.on("message", (data)=>{
+
+document.querySelector("h1").innerText=data;
+});
+
+
+const sendMessage=()=>{ 
+
+let message= document.querySelector("#text").value;
+socket.emit("message", message);
+
+}
+</script>
+</body>
+
+
