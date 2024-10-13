@@ -10,8 +10,17 @@ const engine= require('express-handlebars'). engine;
 const LocalStrategy = require('passport-local').Strategy;
 const server= require("http").createServer(app);
 const io= require("socket.io")(server,
- {cors: {origin:"*"},
-connectionStateRecovery: {}});
+ {cors: {origin:"localhost:3000"},
+ credentials: true,
+connectionStateRecovery: {},
+//change automatic disconnect 
+transports: ['polling', 'websocket'],
+pingTimeout: 30000,
+});
+
+const cookieParser= require ("cookie-parser");
+
+
 // view engine setup
 app.set('views', 'views');
 app.engine('handlebars', engine());
@@ -23,18 +32,19 @@ app.use(express.static('images'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-app.use(session({
-  secret: "secret",
-  resave: false ,
+
+const sessionMiddleware = session({
+  secret: "changeit",
+  resave: false,
   saveUninitialized: false,
-  cookie: {maxAge: 600000},
+  cookie: {maxAge: 60000},
   //cookie: {secure: true}
-}));
+});
 
-app.use(passport.initialize());
+app.use(sessionMiddleware);
 // init passport on every route call.
-
 app.use(passport.session()); 
+
 // allow passport to use "express-session".
 let authUser = (user, password, done) => {
 	console.log(`Value of "User" in authUser function ----> ${user}`)         //passport will populate, user = req.body.username
@@ -62,6 +72,9 @@ passport.deserializeUser((user, done) => {
 
         done (null, {name: user.name, id: user.id} );
 });
+
+
+
 
 let checkAuthenticated = (req, res, next) => {
   if (req.isAuthenticated()) {
@@ -120,16 +133,51 @@ return next(err);
   });
 });
 
-server.listen(3000,()=>{
-console.log("running on port 3000");
-});
+
+function onlyForHandshake(middleware) {
+  return (req, res, next) => {
+    const isHandshake = req._query.sid === undefined;
+    if (isHandshake) {
+      middleware(req, res, next);
+    } else {
+      next();
+    }
+  };
+}
+
+io.engine.use(onlyForHandshake(sessionMiddleware));
+io.engine.use(onlyForHandshake(passport.session()));
+io.engine.use(
+  onlyForHandshake((req, res, next) => {
+    if (req.user) {
+      next();
+    } else {
+      res.writeHead(401);
+      res.end();
+    }
+  }),
+);
 
 let users=0;
 
-io.on("connection", (socket)=>{
-	
-console.log("user connected: " + socket.id);
+io.on("connection", async (socket)=>{
 
+const user= socket.request.user.name;	
+const userId = socket.request.user.id;
+
+  // the user ID is used as a room
+  socket.join(`user:${userId}`);
+
+
+//  allows you to easily broadcast an event to all the connections of a given user:
+io.to(`user:${userId}`).emit("joined", user);
+
+console.log("user connected:  " +user);
+
+//check whether a user is currently connected
+const sockets = await io.in(`user:${userId}`).fetchSockets();
+const isUserConnected = sockets.length > 0;
+console.log("user " +user+" is connected? "+isUserConnected);
 ++users;
 io.emit("user count", users);
 console.log(users);
@@ -139,16 +187,24 @@ socket.on("message", (data)=>{
 //send message to everyone but ourselves 
 socket.broadcast.emit("message", data);
 });
+
+
 //handle a disconnect 
 socket.on("disconnect", ()=>{
-	console.log("disconnected");
+	console.log(user+" has left the room.");
 --users;
 io.emit("user count", users);
+io.emit("disconnected", user);
+
 console.log(users);
 socket.disconnect();
+console.log("user " +user+" is connected? "+isUserConnected);
+
+});
 
 });
 
 
-
+server.listen(3000,()=>{
+console.log("running on port 3000");
 });

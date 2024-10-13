@@ -1,4 +1,6 @@
-
+<head>
+     <link rel="stylesheet" href="./theme.css" />
+</head>
 <body>
     <div class="container">
          <h2>Login With</h2>
@@ -11,8 +13,10 @@
             <h3 style="color: aliceblue;font-weight:lighter">Or</h3>
                   <h3>{{{loginError}}}</h3>
         <form action="/login" method="post">
-            <input type="text" placeholder="username" required name="username">
+        
+          <input type="text" placeholder="username" name="username" />
             <input type="password" placeholder="Password" required name="password">
+                
             <button type="submit" style="margin-bottom: 30px;">Login</button>
         </form>
         <a href="/resetPassword" style="color: blue;">Forgot password? Reset password</a>  <br><br>

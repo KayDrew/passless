@@ -1,67 +1,88 @@
 
 <head>
-<script src="https://cdn.socket.io/socket.io-3.0.1.min.js"></script>
+    <meta charset="UTF-8">  
+    <title>Chat Room</title>
+    <script src="https://cdn.socket.io/socket.io-3.0.1.min.js"></script>
+    <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-    <div class="edit-container">
-        <h3>{{name}} has entered the room</h3>
-        <h1></h1>
-        <h2></h2>
-        <form action="#">
-        <input type="submit" value="disconnect" id="button">
-           <input type="text" id="text"/>
-                    
-                <input type="submit" value="Send" onclick="sendMessage()">
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>Chat Room</h1>
+            <h5></h5>
+            <h3></h3>
+                      <button id="exitBtn" type="button" >Leave</button>
             
-        </form>
+        </div>
+        <div class="chat-box" id="chat-box">
+            
+        </div>
+        <div class="input-area">
+            <input type="text" placeholder="Type your message..." id="message-input">
+            <button id="sendBtn" type="button" >Send</button>
+        </div>
     </div>
-    <script>
-    let users=0;
-    
+   <script>
+   
+   
+   
+let messages= document.querySelector("#chat-box");
+let text= document.querySelector("#message-input");
+
+const sendBtn= document.querySelector("#sendBtn");
+
+sendBtn.addEventListener("click", ()=>{
+let message=text.value;
+let sent= document.createElement("div");
+sent.innerText=message;
+messages.appendChild(sent);
+sent.className="message sent";
+socket.emit("message", message);
+
+//sendBtn.style.background="red";
+});
+
+const exitBtn= document.querySelector("#exitBtn");
+
+exitBtn.addEventListener("click", ()=>{
+socket.disconnect();
+exitBtn.style.background="red";
+
+});
+
+
+
 const socket= io("http://localhost:3000");
 socket.on("connection",()=>{
 
 });
 
-socket.on("disconnect",(reason)=>{
+socket.on("joined",(data)=>{
+let announcement= document.createElement("p");
+announcement.innerText=data+" has entered the room.";
+messages.appendChild(announcement);
 
-if(reason==="io server disconnect"){
-socket.connect();
-
-}
-console.log("disconnected");
 });
 
-socket.emit("user count", users);
+socket.on("disconnected", (data)=>{
+
+let departure= document.createElement("p");
+departure.innerText=data+" has left the room.";
+messages.appendChild(departure);
+});
 
 socket.on("user count",(data)=>{
 
-document.querySelector("h2").innerText=data+" online.";
+document.querySelector("h5").innerText=data+" online.";
 
 });
-
-const btn= document.querySelector("#button");
-
-btn.addEventListener ("click", ()=>{
-socket.disconnect();
-btn.value="connect";
-btn.style.background="red";
-console.log(socket.connected);
-})
 
 socket.on("message", (data)=>{
 
-document.querySelector("h1").innerText=data;
+let receivedMessage=document.createElement("div");
+receivedMessage.className="message received";
+receivedMessage.innerText=data;
+messages.appendChild(receivedMessage);
 });
-
-
-const sendMessage=()=>{ 
-
-let message= document.querySelector("#text").value;
-socket.emit("message", message);
-
-}
 </script>
 </body>
-
-
