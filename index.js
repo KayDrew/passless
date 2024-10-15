@@ -12,10 +12,11 @@ const server= require("http").createServer(app);
 const io= require("socket.io")(server,
  {cors: {origin:"localhost:3000"},
  credentials: true,
+ //restore  any events that happened when client was disconnected 
 connectionStateRecovery: {},
 //change automatic disconnect 
 transports: ['polling', 'websocket'],
-pingTimeout: 30000,
+pingTimeout: 120000
 });
 
 const cookieParser= require ("cookie-parser");
@@ -191,14 +192,16 @@ socket.broadcast.emit("message", data);
 
 //handle a disconnect 
 socket.on("disconnect", ()=>{
+	
 	console.log(user+" has left the room.");
 --users;
 io.emit("user count", users);
 io.emit("disconnected", user);
 
 console.log(users);
-socket.disconnect();
-console.log("user " +user+" is connected? "+isUserConnected);
+
+//console.log("user " +user+" is connected? "+isUserConnected);
+//console.log(socket.connected);
 
 });
 

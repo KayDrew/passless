@@ -64,6 +64,21 @@ messages.appendChild(announcement);
 
 });
 
+socket.on("disconnect", (reason)=>{
+
+if(reason==="io client disconnect"){
+
+socket.disconnect();
+}
+
+else{
+socket.connect();
+
+}
+
+
+});
+
 socket.on("disconnected", (data)=>{
 
 let departure= document.createElement("p");
