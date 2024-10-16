@@ -3,6 +3,7 @@ const app = express();
 const dotenv = require('dotenv');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const FacebookStrategy = require('passport-facebook').Strategy;
 const session = require('express-session');
 //import { config } from 'dotenv';
 //const mongo= require ('mongodb');
@@ -75,20 +76,30 @@ passport.use(new GoogleStrategy({
   }
 ));
 
+passport.use(new FacebookStrategy({
+    clientID:process.env.FACEBOOK_APP_ID,
+    clientSecret: process.env.FACEBOOK_APP_SECRET,
+    callbackURL: "http://localhost:3000/facebook/login",
+  },
+  function(accessToken, refreshToken, profile, cb) {
+    
+    console.log(profile.displayName);
+    let user={name: profile.displayName, id:profile.id};
+      return cb(null, user);
+    
+  }
+));
+
 
 passport.serializeUser( (user, done) => {
-//	console.log(user)     
-
     done(null, user)
     
 });
 
 passport.deserializeUser((user, done) => {
-      console.log(user);
-
+      
         done (null, {name: user.name, id: user.id} );
 });
-
 
 
 
@@ -124,6 +135,14 @@ app.get('/google', passport.authenticate('google', { scope: ['profile'] }));
 
 app.get('/google/login', 
   passport.authenticate('google', {
+ failureRedirect: '/login', successRedirect:'/chat',
+
+ }));
+ 
+ app.get('/facebook', passport.authenticate('facebook', { authType: 'reauthenticate'}));
+
+app.get('/facebook/login', 
+  passport.authenticate('facebook', {
  failureRedirect: '/login', successRedirect:'/chat',
 
  }));
@@ -222,9 +241,6 @@ io.emit("user count", users);
 io.emit("disconnected", user);
 
 console.log(users);
-
-//console.log("user " +user+" is connected? "+isUserConnected);
-//console.log(socket.connected);
 
 });
 
