@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+const dotenv = require('dotenv');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const session = require('express-session');
@@ -19,9 +20,8 @@ connectionStateRecovery: {},
 transports: ['polling', 'websocket'],
 pingTimeout: 120000
 });
-
 const cookieParser= require ("cookie-parser");
-
+dotenv.config();
 
 // view engine setup
 app.set('views', 'views');
@@ -36,7 +36,7 @@ app.use(express.urlencoded({ extended: false }));
 
 
 const sessionMiddleware = session({
-  secret: "changeit",
+  secret: process.env.SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {maxAge: 60000},
@@ -61,8 +61,8 @@ let authUser = (user, password, done) => {
 passport.use(new LocalStrategy (authUser));
 
 passport.use(new GoogleStrategy({
-    clientID: '144742515443-sluqhfu3jh0c8t63s009bsp7lpdtne3o.apps.googleusercontent.com',
-    clientSecret: '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',
+    clientID: process.env.CLIENT_ID,
+    clientSecret: process.env.CLIENT_SECRET,
     callbackURL: "http://localhost:3000/google/login"
   },
   
