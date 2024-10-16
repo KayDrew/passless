@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const session = require('express-session');
 //import { config } from 'dotenv';
 //const mongo= require ('mongodb');
@@ -59,6 +60,20 @@ let authUser = (user, password, done) => {
 }
 passport.use(new LocalStrategy (authUser));
 
+passport.use(new GoogleStrategy({
+    clientID: '144742515443-sluqhfu3jh0c8t63s009bsp7lpdtne3o.apps.googleusercontent.com',
+    clientSecret: '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',
+    callbackURL: "http://localhost:3000/google/login"
+  },
+  
+  function(accessToken, refreshToken, profile, cb) {
+
+    console.log(profile.displayName);
+    let user={name: profile.displayName, id:profile.id};
+      return cb(null, user);
+   
+  }
+));
 
 
 passport.serializeUser( (user, done) => {
@@ -104,6 +119,14 @@ app.post ("/login", passport.authenticate('local', {
    successRedirect: "/chat",
    failureRedirect: "/login",
 }));
+
+app.get('/google', passport.authenticate('google', { scope: ['profile'] }));
+
+app.get('/google/login', 
+  passport.authenticate('google', {
+ failureRedirect: '/login', successRedirect:'/chat',
+
+ }));
 
 app.get("/chat", checkAuthenticated, (req, res) => {
 	
