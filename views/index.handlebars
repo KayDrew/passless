@@ -1,1 +1,79 @@
-<h1>Welcome</h1>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Rooms</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #004080;
+        }
+        .chat-room {
+            background-color: #ffffff;
+            border: 2px solid #004080;
+            border-radius: 8px;
+            margin: 20px auto;
+            padding: 20px;
+            max-width: 400px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .chat-room h2 {
+            color: #004080;
+            margin: 0 0 10px;
+        }
+        .join-button {
+            display: block;
+            background-color: #004080;
+            color: #ffffff;
+            text-align: center;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        .join-button:hover {
+            background-color: #003366;
+        }
+    </style>
+</head>
+<body>
+<div class="pick-room">
+    <h1>Chat Rooms</h1>
+    <div class="chat-room">
+        <h2>General Chat</h2>
+        <p>Join the conversation on various topics!</p>
+        <button type="button" class="join-button"  id="room1" onclick="joinRoom(this.getAttribute('id'))">Join Room</button>
+    </div>
+    <div class="chat-room">
+        <h2>Tech Talk</h2>
+        <p>Discuss the latest in technology and gadgets!</p>
+        <button type="button" class="join-button" id="room2" onclick="joinRoom(this.getAttribute('id'))">Join Room</button>
+    </div>
+    <div class="chat-room">
+        <h2>Book Club</h2>
+        <p>Share and discuss your favorite books!</p>
+        <button type="button" class="join-button" id="room3" onclick="joinRoom(this.getAttribute('id'))">Join Room</button>
+    </div>
+    </div>
+    <div class="rooms"></div>
+    <script>
+    const pickRooms= document.querySelector(".pick-room");
+    const rooms= document.querySelector(".rooms");
+    
+   function joinRoom(id){
+   
+    
+}
+
+
+
+</script>
+</body>
