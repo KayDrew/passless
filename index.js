@@ -117,17 +117,13 @@ let checkLoggedIn = (req, res, next) => {
   next()
 }
 
-app.get("/", (req,res)=>{
-
-res.render("index");
-});
 
 app.get("/login", checkLoggedIn, (req, res) => {     
      res.render("login");
 })
 
 app.post ("/login", passport.authenticate('local', {
-   successRedirect: "/chat",
+   successRedirect: "/",
    failureRedirect: "/login",
 }));
 
@@ -135,7 +131,7 @@ app.get('/google', passport.authenticate('google', { scope: ['profile'] }));
 
 app.get('/google/login', 
   passport.authenticate('google', {
- failureRedirect: '/login', successRedirect:'/chat',
+ failureRedirect: '/login', successRedirect:'/',
 
  }));
  
@@ -143,9 +139,18 @@ app.get('/google/login',
 
 app.get('/facebook/login', 
   passport.authenticate('facebook', {
- failureRedirect: '/login', successRedirect:'/chat',
+ failureRedirect: '/login', successRedirect:'/',
 
  }));
+
+ app.get("/", checkAuthenticated, (req, res) => {
+	
+	console.log(req.user);
+  res.render("index", {
+name: req.user.name,
+id: req.user.id,
+});
+});
 
 app.get("/chat", checkAuthenticated, (req, res) => {
 	
@@ -205,15 +210,16 @@ let users=0;
 
 io.on("connection", async (socket)=>{
 
+  
 const user= socket.request.user.name;	
 const userId = socket.request.user.id;
 
   // the user ID is used as a room
-  socket.join(`user:${userId}`);
+  //socket.join(`user:${userId}`);
 
 
 //  allows you to easily broadcast an event to all the connections of a given user:
-io.to(`user:${userId}`).emit("joined", user);
+//io.to(`user:${userId}`).emit("joined", user);
 
 console.log("user connected:  " +user);
 
@@ -225,6 +231,8 @@ console.log("user " +user+" is connected? "+isUserConnected);
 io.emit("user count", users);
 console.log(users);
 
+
+
 socket.on("message", (data)=>{
 //console.log(data);
 //send message to everyone but ourselves 
@@ -234,6 +242,9 @@ socket.broadcast.emit("message", data);
 
 //handle a disconnect 
 socket.on("disconnect", ()=>{
+
+
+  //socket.join("room1");
 	
 	console.log(user+" has left the room.");
 --users;

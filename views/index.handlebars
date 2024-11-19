@@ -3,6 +3,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Rooms</title>
+    <script src="https://cdn.socket.io/socket.io-3.0.1.min.js"></script>
+    <link rel="stylesheet" href="./style.css">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -42,6 +44,10 @@
         .join-button:hover {
             background-color: #003366;
         }
+
+        .rooms{
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -50,28 +56,134 @@
     <div class="chat-room">
         <h2>General Chat</h2>
         <p>Join the conversation on various topics!</p>
-        <button type="button" class="join-button"  id="room1" onclick="joinRoom(this.getAttribute('id'))">Join Room</button>
+        <button type="button" class="join-button"  id="General Chat" onclick="joinRoom(this.getAttribute('id'))">Join Room</button>
     </div>
     <div class="chat-room">
         <h2>Tech Talk</h2>
         <p>Discuss the latest in technology and gadgets!</p>
-        <button type="button" class="join-button" id="room2" onclick="joinRoom(this.getAttribute('id'))">Join Room</button>
+        <button type="button" class="join-button" id="Tech Talk" onclick="joinRoom(this.getAttribute('id'))">Join Room</button>
     </div>
     <div class="chat-room">
         <h2>Book Club</h2>
         <p>Share and discuss your favorite books!</p>
-        <button type="button" class="join-button" id="room3" onclick="joinRoom(this.getAttribute('id'))">Join Room</button>
+        <button type="button" class="join-button" id="Book Club" onclick="joinRoom(this.getAttribute('id'))">Join Room</button>
     </div>
     </div>
-    <div class="rooms"></div>
+    <div class="rooms">
+   <div class="chat-container">
+        <div class="chat-header">
+            <h1 id="room-name">Chat Room</h1>
+            <h5></h5>
+            <h3></h3>
+                      <button id="exitBtn" type="button" >Leave</button>
+            
+        </div>
+        <div class="chat-box" id="chat-box">
+            
+        </div>
+        <div class="input-area">
+            <input type="text" placeholder="Type your message..." id="message-input">
+            <button id="sendBtn" type="button" >Send</button>
+        </div>
+    </div>
+
+
+    </div>
     <script>
     const pickRooms= document.querySelector(".pick-room");
     const rooms= document.querySelector(".rooms");
+    const roomName=document.querySelector("#room-name");
+    const exitBtn= document.querySelector("#exitBtn");
+
+    exitBtn.addEventListener("click",()=>{
+        rooms.style.display="none";
+              pickRooms.style.display="block";
+              socket.disconnect();
+
+
+
+    })
     
    function joinRoom(id){
    
-    
+rooms.style.display="block";
+pickRooms.style.display="none";
+roomName.innerText= `Welcome to ${id}`;
+socket.join(id);
+
+
+
 }
+
+
+   
+   
+   
+let messages= document.querySelector("#chat-box");
+let text= document.querySelector("#message-input");
+
+const sendBtn= document.querySelector("#sendBtn");
+
+sendBtn.addEventListener("click", ()=>{
+let message=text.value;
+let sent= document.createElement("div");
+sent.innerText=message;
+messages.appendChild(sent);
+sent.className="message sent";
+socket.emit("message", message);
+
+//sendBtn.style.background="red";
+});
+
+
+
+const socket= io("http://localhost:3000");
+socket.on("connection",()=>{
+
+});
+
+socket.on("joined",(data)=>{
+let announcement= document.createElement("p");
+announcement.innerText=data+" has entered the room.";
+messages.appendChild(announcement);
+
+});
+
+socket.on("disconnect", (reason)=>{
+
+if(reason==="io client disconnect"){
+
+socket.disconnect();
+}
+
+else{
+socket.connect();
+
+}
+
+
+});
+
+socket.on("disconnected", (data)=>{
+
+let departure= document.createElement("p");
+departure.innerText=data+" has left the room.";
+messages.appendChild(departure);
+});
+
+socket.on("user count",(data)=>{
+
+document.querySelector("h5").innerText=data+" online.";
+
+});
+
+socket.on("message", (data)=>{
+
+let receivedMessage=document.createElement("div");
+receivedMessage.className="message received";
+receivedMessage.innerText=data;
+messages.appendChild(receivedMessage);
+});
 
 
 
