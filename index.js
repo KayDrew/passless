@@ -112,7 +112,7 @@ let checkAuthenticated = (req, res, next) => {
 
 let checkLoggedIn = (req, res, next) => {
   if (req.isAuthenticated()) { 
-       return res.redirect("/profile")
+       return res.redirect("/chat")
    }
   next()
 }
@@ -123,7 +123,7 @@ app.get("/login", checkLoggedIn, (req, res) => {
 })
 
 app.post ("/login", passport.authenticate('local', {
-   successRedirect: "/",
+   successRedirect: "/chat",
    failureRedirect: "/login",
 }));
 
@@ -131,7 +131,7 @@ app.get('/google', passport.authenticate('google', { scope: ['profile'] }));
 
 app.get('/google/login', 
   passport.authenticate('google', {
- failureRedirect: '/login', successRedirect:'/',
+ failureRedirect: '/login', successRedirect:'/chat',
 
  }));
  
@@ -139,7 +139,7 @@ app.get('/google/login',
 
 app.get('/facebook/login', 
   passport.authenticate('facebook', {
- failureRedirect: '/login', successRedirect:'/',
+ failureRedirect: '/login', successRedirect:'/chat',
 
  }));
 
@@ -206,13 +206,35 @@ io.engine.use(
   }),
 );
 
-let users=0;
+let roomUsers={};
 
 io.on("connection", async (socket)=>{
-
-  
+ 
 const user= socket.request.user.name;	
 const userId = socket.request.user.id;
+let room="";
+
+
+
+socket.on("joinRoom", (data)=>{
+  room=data;
+  console.log(`joined room: ${room}`);
+  socket.join(room);    
+
+  if(!roomUsers[room]){
+
+    roomUsers[room]=0;
+  }
+
+  roomUsers[room]++;
+  console.log(JSON.stringify(roomUsers));
+
+io.to(room).emit("user",user);
+io.to(room).emit("welcome", "testing message");
+io.to(room).emit("userCount",roomUsers[room]);
+});
+
+
 
   // the user ID is used as a room
   //socket.join(`user:${userId}`);
@@ -227,11 +249,6 @@ console.log("user connected:  " +user);
 const sockets = await io.in(`user:${userId}`).fetchSockets();
 const isUserConnected = sockets.length > 0;
 console.log("user " +user+" is connected? "+isUserConnected);
-++users;
-io.emit("user count", users);
-console.log(users);
-
-
 
 socket.on("message", (data)=>{
 //console.log(data);
@@ -247,11 +264,9 @@ socket.on("disconnect", ()=>{
   //socket.join("room1");
 	
 	console.log(user+" has left the room.");
---users;
-io.emit("user count", users);
+
 io.emit("disconnected", user);
 
-console.log(users);
 
 });
 

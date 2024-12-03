@@ -90,6 +90,7 @@
 
     </div>
     <script>
+        let room="";
     const pickRooms= document.querySelector(".pick-room");
     const rooms= document.querySelector(".rooms");
     const roomName=document.querySelector("#room-name");
@@ -109,14 +110,13 @@
 rooms.style.display="block";
 pickRooms.style.display="none";
 roomName.innerText= `Welcome to ${id}`;
-socket.join(id);
+room=id;
 
 
 
 }
 
-
-   
+  
    
    
 let messages= document.querySelector("#chat-box");
@@ -137,7 +137,11 @@ socket.emit("message", message);
 
 
 
-const socket= io("http://localhost:3000");
+const socket= io("http://localhost:3000",{
+    query{
+        room:room;
+    }
+});
 socket.on("connection",()=>{
 
 });
