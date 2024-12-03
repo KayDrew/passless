@@ -217,6 +217,7 @@ const userId = socket.request.user.id;
 
 
 socket.on("joinRoom", (data)=>{
+
 let room="";
   room=data;
   console.log(`joined room: ${room}`);
@@ -249,6 +250,12 @@ socket.on("leaveRoom",(data)=>{
 
 });
 
+
+//broadcast to room
+socket.on("message",(data)=>{
+ socket.to(data.room).emit("message",data.message);
+});
+
   // the user ID is used as a room
   //socket.join(`user:${userId}`);
 
@@ -262,6 +269,7 @@ console.log("user connected:  " +user);
 //const sockets = await io.in(`user:${userId}`).fetchSockets();
 //const isUserConnected = sockets.length > 0;
 //console.log("user " +user+" is connected? "+isUserConnected);
+
 
 //socket.on("message", (data)=>{
 //console.log(data);

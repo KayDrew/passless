@@ -138,7 +138,7 @@ document.querySelector("#joined").innerText=data.message;
 
    });
    
-   /*
+  
 let messages= document.querySelector("#chat-box");
 let text= document.querySelector("#message-input");
 
@@ -150,13 +150,18 @@ let sent= document.createElement("div");
 sent.innerText=message;
 messages.appendChild(sent);
 sent.className="message sent";
-socket.emit("message", message);
-
-//sendBtn.style.background="red";
+socket.emit("message", {message:message, room:room});
+text.innerText="";
 });
 
-*/
 
+socket.on("message", (data)=>{
+
+let receivedMessage=document.createElement("div");
+receivedMessage.className="message received";
+receivedMessage.innerText=data;
+messages.appendChild(receivedMessage);
+});
 
 
 socket.on("disconnect", (reason)=>{
@@ -191,14 +196,7 @@ messages.appendChild(departure);
 });
 
 
-
-socket.on("message", (data)=>{
-
-let receivedMessage=document.createElement("div");
-receivedMessage.className="message received";
-receivedMessage.innerText=data;
-messages.appendChild(receivedMessage);
-});**/
+**/
 
 
 
