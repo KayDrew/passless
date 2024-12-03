@@ -212,11 +212,12 @@ io.on("connection", async (socket)=>{
  
 const user= socket.request.user.name;	
 const userId = socket.request.user.id;
-let room="";
+
 
 
 
 socket.on("joinRoom", (data)=>{
+let room="";
   room=data;
   console.log(`joined room: ${room}`);
   socket.join(room);    
@@ -227,14 +228,26 @@ socket.on("joinRoom", (data)=>{
   }
 
   roomUsers[room]++;
-  console.log(JSON.stringify(roomUsers));
 
-io.to(room).emit("user",user);
-io.to(room).emit("welcome", "testing message");
-io.to(room).emit("userCount",roomUsers[room]);
+
+io.to(room).emit("userCount",{roomUsers:roomUsers[room], message:`${user} has joined the room`});
+
+
 });
 
 
+socket.on("leaveRoom",(data)=>{
+
+  let room="";
+  room=data;
+  socket.leave(room);
+
+  if(roomUsers[room]){
+    roomUsers[room]--;
+  }
+  io.to(room).emit("userCount",{roomUsers:roomUsers[room], message:`${user} has left the room`});
+
+});
 
   // the user ID is used as a room
   //socket.join(`user:${userId}`);
@@ -246,24 +259,20 @@ io.to(room).emit("userCount",roomUsers[room]);
 console.log("user connected:  " +user);
 
 //check whether a user is currently connected
-const sockets = await io.in(`user:${userId}`).fetchSockets();
-const isUserConnected = sockets.length > 0;
-console.log("user " +user+" is connected? "+isUserConnected);
+//const sockets = await io.in(`user:${userId}`).fetchSockets();
+//const isUserConnected = sockets.length > 0;
+//console.log("user " +user+" is connected? "+isUserConnected);
 
-socket.on("message", (data)=>{
+//socket.on("message", (data)=>{
 //console.log(data);
 //send message to everyone but ourselves 
-socket.broadcast.emit("message", data);
-});
+//socket.broadcast.emit("message", data);
 
 
 //handle a disconnect 
 socket.on("disconnect", ()=>{
-
-
-  //socket.join("room1");
 	
-	console.log(user+" has left the room.");
+	console.log(user+"disconnected.");
 
 io.emit("disconnected", user);
 
@@ -271,6 +280,10 @@ io.emit("disconnected", user);
 });
 
 });
+
+
+
+
 
 
 server.listen(3000,()=>{

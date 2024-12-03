@@ -76,7 +76,7 @@
             <h5 id="users"></h5>
             <h3 id="joined"></h3>
 
-        <button id="exitBtn" type="button" >Leave</button>
+        <button id="exitBtn" type="button" onclick="leaveRoom()">Leave</button>
             
         </div>
         <div class="chat-box" id="chat-box">
@@ -103,42 +103,24 @@
     const rooms= document.querySelector(".rooms");
     const roomName=document.querySelector("#room-name");
     const exitBtn= document.querySelector("#exitBtn");
+  let room="";
 
-    exitBtn.addEventListener("click",()=>{
+function leaveRoom(){
+
         rooms.style.display="none";
               pickRooms.style.display="block";
-              socket.disconnect();
+              socket.emit("leaveRoom",room);
 
 
-    })
+    }
     
-let room="";
-let techUsers=0;
-let bookUsers= 0;
-let genUsers= 0;
-let users=0;
+
+
 
    function joinRoom(id){
    
-
    room=id;
-
-   socket.on("userCount",(data)=>{
-
-document.querySelector("#users").innerText=`${data} online`;
-
-   });
-
-
 socket.emit("joinRoom",room);
-
-socket.on("user",(data)=>{
-
-document.querySelector("#joined").innerText=`${data} has joined the room`;
-
-});
-
-
 rooms.style.display="block";
 pickRooms.style.display="none";
 roomName.innerText= `Welcome to ${id}`;
@@ -147,7 +129,16 @@ roomName.innerText= `Welcome to ${id}`;
 }
  
  
+    socket.on("userCount",(data)=>{
+
+document.querySelector("#users").innerText=`${data.roomUsers} online`;
+
+document.querySelector("#joined").innerText=data.message;
+
+
+   });
    
+   /*
 let messages= document.querySelector("#chat-box");
 let text= document.querySelector("#message-input");
 
@@ -164,15 +155,9 @@ socket.emit("message", message);
 //sendBtn.style.background="red";
 });
 
+*/
 
 
-/*  
-socket.on("joined",(data)=>{
-let announcement= document.createElement("p");
-announcement.innerText=data+" has entered the room.";
-messages.appendChild(announcement);
-
-});
 
 socket.on("disconnect", (reason)=>{
 
@@ -186,6 +171,15 @@ socket.connect();
 
 }
 
+});
+
+
+
+/*  
+socket.on("joined",(data)=>{
+let announcement= document.createElement("p");
+announcement.innerText=data+" has entered the room.";
+messages.appendChild(announcement);
 
 });
 
@@ -196,11 +190,7 @@ departure.innerText=data+" has left the room.";
 messages.appendChild(departure);
 });
 
-socket.on("user count",(data)=>{
 
-document.querySelector("h5").innerText=data+" online.";
-
-});
 
 socket.on("message", (data)=>{
 
