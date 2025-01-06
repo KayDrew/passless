@@ -247,6 +247,7 @@ socket.on("leaveRoom",(data)=>{
     roomUsers[room]--;
   }
   io.to(room).emit("userCount",{roomUsers:roomUsers[room], message:`${user} has left the room`});
+  
 
 });
 
@@ -280,7 +281,7 @@ console.log("user connected:  " +user);
 //handle a disconnect 
 socket.on("disconnect", ()=>{
 	
-	console.log(user+"disconnected.");
+	console.log(user+" disconnected.");
 
 io.emit("disconnected", user);
 

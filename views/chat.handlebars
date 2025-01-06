@@ -129,14 +129,7 @@ roomName.innerText= `Welcome to ${id}`;
 }
  
  
-    socket.on("userCount",(data)=>{
 
-document.querySelector("#users").innerText=`${data.roomUsers} online`;
-
-document.querySelector("#joined").innerText=data.message;
-
-
-   });
    
   
 let messages= document.querySelector("#chat-box");
@@ -155,6 +148,16 @@ text.innerText="";
 });
 
 
+    socket.on("userCount",(data)=>{
+
+document.querySelector("#users").innerText=`${data.roomUsers} online`;
+
+let announcement= document.createElement("p");
+announcement.innerText=data.message;
+messages.appendChild(announcement);
+
+   });
+
 socket.on("message", (data)=>{
 
 let receivedMessage=document.createElement("div");
@@ -169,6 +172,7 @@ socket.on("disconnect", (reason)=>{
 if(reason==="io client disconnect"){
 
 socket.disconnect();
+
 }
 
 else{
@@ -179,24 +183,16 @@ socket.connect();
 });
 
 
+socket.on("disconnected",(data)=>{
 
-/*  
-socket.on("joined",(data)=>{
+
 let announcement= document.createElement("p");
-announcement.innerText=data+" has entered the room.";
+announcement.innerText=`${data} has disconnected`;
 messages.appendChild(announcement);
 
 });
 
-socket.on("disconnected", (data)=>{
-
-let departure= document.createElement("p");
-departure.innerText=data+" has left the room.";
-messages.appendChild(departure);
-});
-
-
-**/
+  
 
 
 
